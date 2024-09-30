@@ -1,6 +1,6 @@
 import globals from "globals";
-import js from '@eslint/js'
 import stylisticJs from '@stylistic/eslint-plugin-js'
+import js from '@eslint/js'
 
 export default [
   js.configs.recommended,
@@ -39,12 +39,12 @@ export default [
         'error', 'always'
       ],
       'arrow-spacing': [
-        'error', {'before': true, 'after': true},
+        'error', { 'before': true, 'after': true },
       ],
       'no-console': 'off',
     },
   },
-  {
+  { 
     ignores: ["dist/**", "build/**"],
   },
-];
+]
