@@ -1,19 +1,25 @@
-import loginService from './services/login'
-
 import { useState, useEffect } from 'react'
 import Blog from './components/Blog'
 import blogService from './services/blogs'
+import loginService from './services/login'
+import Notification from "./components/Notification"
 
 const App = () => {
   const [blogs, setBlogs] = useState([])
+  
   // add state for title, author and url
   const [newTitle, setNewTitle] = useState('') // newTitle state reflects current value of title input
   const [newAuthor, setNewAuthor] = useState('') // newTitle state reflects current value of author input
   const [newUrl, setNewUrl] = useState('') // newTitle state reflects current value of url input
+  
   // add state for username and password
   const [username, setUsername] = useState('') 
   const [password, setPassword] = useState('')
   const [user, setUser] = useState(null)
+
+  // add state for error message and success
+  const [errorMessage, setErrorMessage] = useState(null)
+  const [success, setSuccess] = useState(false)
 
   // effect hooks should be put at beginning lol
   useEffect(() => {
@@ -123,11 +129,12 @@ const App = () => {
       setUsername('')
       setPassword('')
     } catch (exception) {
-      // we could put an error message like this:
-      // setErrorMessage('Wrong credentials')
-      // setTimeout(() => {
-      //   setErrorMessage(null)
-      // }, 5000)
+    // display notification if exception occured
+    setErrorMessage('wrong username or password')
+      setSuccess(false)
+      setTimeout(() => {
+        setErrorMessage(null)
+      }, 5000)
       console.log(exception)
     }
   }
@@ -137,19 +144,10 @@ const App = () => {
   const handleLogout = async (event) => {
     event.preventDefault()
     
-    try {
-      window.localStorage.removeItem('loggedBlogAppUser')
+    window.localStorage.removeItem('loggedBlogAppUser')
 
-      blogService.setToken(null)
-      setUser(null)
-    } catch (exception) {
-      // we could put an error message like this:
-      // setErrorMessage('Wrong credentials')
-      // setTimeout(() => {
-      //   setErrorMessage(null)
-      // }, 5000)
-      console.log(exception)
-    }
+    blogService.setToken(null)
+    setUser(null)
   }
 
   // add handlers for changes in text fields
@@ -184,11 +182,21 @@ const App = () => {
     setNewTitle('')
     setNewAuthor('')
     setNewUrl('')
+    // display notification if addBlog operation was successful
+    setErrorMessage(`a new blog '${newTitle}' by '${newAuthor}' added`)
+    setSuccess(true)
+    setTimeout(() => {
+      setErrorMessage(null)
+      setSuccess(false)
+    }, 5000)
+    // we could also add try catch block here
   }
 
   return (
     <div>
+      {/* render Notification */}
       <h2>blogs</h2>
+      <Notification message={errorMessage} success={success} />
 
       {/* render login or (logout form + blog form + blog list) conditionally */}
       {user === null ?
