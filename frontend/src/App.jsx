@@ -3,6 +3,7 @@ import Blog from './components/Blog'
 import blogService from './services/blogs'
 import loginService from './services/login'
 import Notification from "./components/Notification"
+import Togglable from './components/Togglable'
 
 const App = () => {
   const [blogs, setBlogs] = useState([])
@@ -68,30 +69,34 @@ const App = () => {
   // simply add a form with 3 fields + 1 button
   // title, author, url
   const blogForm = () => (
-    <form onSubmit={addBlog}>
-      <div>
-        title:
-        <input
-          value={newTitle}
-          onChange={handleTitleChange}
-        />
-      </div>
-      <div>
-        author:
-        <input
-          value={newAuthor}
-          onChange={handleAuthorChange}
-        />
-      </div>
-      <div>
-        url:
-        <input
-          value={newUrl}
-          onChange={handleUrlChange}
-        />
-      </div>
-      <button type="submit">create</button>
-    </form>  
+    // move h2 to correct position so it gets toggled as well with the form
+    <div>
+      <h2>create new</h2>
+      <form onSubmit={addBlog}>
+        <div>
+          title:
+          <input
+            value={newTitle}
+            onChange={handleTitleChange}
+          />
+        </div>
+        <div>
+          author:
+          <input
+            value={newAuthor}
+            onChange={handleAuthorChange}
+          />
+        </div>
+        <div>
+          url:
+          <input
+            value={newUrl}
+            onChange={handleUrlChange}
+          />
+        </div>
+        <button type="submit">create</button>
+      </form>
+    </div>  
   )
 
   // outsource logout form
@@ -203,14 +208,17 @@ const App = () => {
         loginForm() :
         <div>
           <p>{user.name} logged-in{logoutForm()}</p>
-
-          <h2>create new</h2>
           
-          {blogForm()}
+          {/* New Blog makes more sense here lol
+          but I'll stick to the course material */}
+          {/* wrap call of blogForm() with a Toggleable */}
+          <Togglable buttonLabel={'new note'}>
+            {blogForm()}
+          </Togglable>
+
           {blogList()}
         </div>
       }
-
     </div>
   )
 }
