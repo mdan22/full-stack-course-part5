@@ -1,5 +1,5 @@
 // extract the toggle funvtionality into a seperate component
-import { useState, forwardRef, useImperativeHandle } from "react"
+import { useState, forwardRef, useImperativeHandle } from 'react'
 
 // the fct that creates component is wrapped inside a
 // forwardRef fct call -> the component can access the ref(s)
