@@ -40,7 +40,7 @@ const App = () => {
   // outsource logout form
   // simple - it's just a logout button
   const logoutForm = () => (
-    <button onClick={handleLogout}>logout</button>
+    <button className='button' onClick={handleLogout}>logout</button>
   )
 
   // outsource blog list
@@ -126,7 +126,7 @@ const App = () => {
   const blogFormRef = useRef()
   const blogForm = () => (
     // wrap call of blogForm() with a Toggleable
-    <Togglable buttonLabel={'new blog'} ref={blogFormRef}>
+    <Togglable buttonLabel={'create new blog'} ref={blogFormRef}>
       <BlogForm createBlog={addBlog}/>
     </Togglable>
   )
@@ -145,7 +145,7 @@ const App = () => {
             </Togglable>
           </div>
         : <div>
-            <p>{user.name} logged-in{logoutForm()}</p>
+            <p>{user.name} logged-in {logoutForm()}</p>
             
             {blogForm()}
           </div>
