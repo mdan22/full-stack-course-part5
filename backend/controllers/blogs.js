@@ -1,7 +1,5 @@
-const jwt = require('jsonwebtoken')
 const router = require('express').Router()
 const Blog = require('../models/blog')
-const User = require('../models/user')
 const userExtractor = require('../utils/middleware').userExtractor
 
 router.get('/', async (request, response) => {
@@ -56,17 +54,36 @@ router.delete('/:id', userExtractor, async (request, response) => {
   response.status(204).end()
 })
 
-router.put('/:id', async (request, response) => {
-  const body = request.body
+router.put('/:id', userExtractor, async (request, response) => {
+  const { id: blogId } = request.params
+  const user = request.user
 
-  const blog = {
-    title: body.title,
-    author: body.author,
-    url: body.url,
-    likes: body.likes
+  const blog = await Blog.findById(blogId)
+  if (!blog) {
+    return response.status(404).json({ error: 'Blog not found' })
   }
 
-  const updatedBlog = await Blog.findByIdAndUpdate(request.params.id, blog, { new: true })
+  // Check if this is a like request
+  if (request.body.like) {
+    if (blog.likedBy.includes(user.id)) {
+      return response.status(400).json({ error: 'User has already liked this blog' })
+    }
+
+    blog.likes += 1
+    blog.likedBy.push(user.id)
+    user.likedBlogs = user.likedBlogs.concat(blogId)
+
+    await user.save()
+  } else {
+    // Handle other update operations
+    const { title, author, url, likes } = request.body
+    blog.title = title || blog.title
+    blog.author = author || blog.author
+    blog.url = url || blog.url
+    blog.likes = likes || blog.likes
+  }
+
+  const updatedBlog = await blog.save()
   response.json(updatedBlog)
 })
 

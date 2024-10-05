@@ -12,7 +12,7 @@ const BlogForm = ({createBlog}) => {
   const handleSubmit = (event) => {
     event.preventDefault()
 
-    console.log('button clicked', event.target)
+    console.log('create button clicked', event.target)
     
     createBlog({
       title: newTitle,

@@ -15,6 +15,13 @@ const userSchema = mongoose.Schema({
       ref: 'Blog'
     }
   ],
+  // add list of liked blogges of a user as well
+  likedBlogs: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Blog'
+    }
+  ]
 })
 
 userSchema.set('toJSON', {

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 
-const Blog = ({ blog }) => {
+// pass blog to be liked and onlike handler are passed as props
+const Blog = ({ blog, onLike }) => {
   // I put the styles for both blogs and buttons
   // into the index.css which is imported by main.jsx
 
@@ -14,12 +15,8 @@ const Blog = ({ blog }) => {
   const showWhenVisible = { display: visible ? '' : 'none' }
 
   const toggleVisibility = () => {
+    console.log('toggle button clicked')
     setVisible(!visible)
-  }
-
-  // we'll implement this later
-  const handleLike = (event) => {
-    console.log('button clicked')
   }
 
   return (
@@ -38,7 +35,7 @@ const Blog = ({ blog }) => {
           </div>
 
           <div>
-            likes {blog.likes} <button className='button' onClick={handleLike()}>like</button>
+            likes {blog.likes} <button className='button' onClick={onLike}>like</button>
           </div>
 
           <div>

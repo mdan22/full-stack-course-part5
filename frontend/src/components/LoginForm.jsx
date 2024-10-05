@@ -11,6 +11,9 @@ const LoginForm = ({ handleLogin }) => {
   // when login form is submitted, the handleLogin fct is called
   const onSubmit = async (event) => {
     event.preventDefault()
+
+    console.log('login button clicked')
+
     const success = await handleLogin(username, password)
 
     // we reset the fields if login was successful

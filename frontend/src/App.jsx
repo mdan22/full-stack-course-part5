@@ -39,17 +39,23 @@ const App = () => {
 
   // outsource logout form
   // simple - it's just a logout button
-  const logoutForm = () => (
+  const logoutForm = () => {
+    return (
     <button className='button' onClick={handleLogout}>logout</button>
-  )
+  )}
 
   // outsource blog list
   const blogList = () => {
     return (
       <div>
         {blogs.map(blog =>
-        <Blog key={blog.id} blog={blog} />
-      )}
+          <Blog
+            key={blog.id}
+            blog={blog}
+            // use handleLike handler and pass blog object to it
+            onLike={() => handleLike(blog)}
+          />
+        )}
       </div>
     )
   }
@@ -91,6 +97,8 @@ const App = () => {
   // removes local storage data of user in browser
   const handleLogout = async (event) => {
     event.preventDefault()
+
+    console.log('logout button clicked')
     
     window.localStorage.removeItem('loggedBlogAppUser')
 
@@ -130,6 +138,41 @@ const App = () => {
       <BlogForm createBlog={addBlog}/>
     </Togglable>
   )
+
+    // handler for like button
+    // is put here bc it needs to access blogs, blogService
+    // and maybe error message in future
+    const handleLike = async (blogToLike) => {
+      console.log('\'like\' button clicked')
+
+      if (!user) {
+        console.error('User is not logged in')
+        return
+      }
+    
+      try {
+        // Send only the like operation flag
+        const returnedBlog = await blogService.update(blogToLike.id, { like: true })
+        
+        setBlogs(blogs.map(b => b.id !== returnedBlog.id ? b : returnedBlog))
+        
+        setErrorMessage(`You liked the blog '${returnedBlog.title}'`)
+        setSuccess(true)
+      } catch (error) {
+        console.error('Error updating blog:', error)
+        if (error.response && error.response.data.error === 'User has already liked this blog') {
+          setErrorMessage('You have already liked this blog')
+        } else {
+          setErrorMessage('An error occurred while liking the blog')
+        }
+        setSuccess(false)
+      }
+    
+      setTimeout(() => {
+        setErrorMessage(null)
+        setSuccess(false)
+      }, 5000)
+    }
 
   return (
     <div>

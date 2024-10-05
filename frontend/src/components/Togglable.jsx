@@ -12,6 +12,7 @@ const Togglable = forwardRef((props, refs) => {
     const showWhenVisible = { display: visible ? '' : 'none' }
 
     const toggleVisibility = () => {
+      console.log('toggle button clicked')
       setVisible(!visible)
     }
 
