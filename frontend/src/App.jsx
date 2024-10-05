@@ -199,3 +199,6 @@ const App = () => {
 }
 
 export default App
+
+// The 5.9 problem didn't occur so I'll move to
+// exercise 5.10 without additional changes.
