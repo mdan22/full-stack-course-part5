@@ -48,7 +48,9 @@ const App = () => {
   const blogList = () => {
     return (
       <div>
-        {blogs.map(blog =>
+        {blogs
+          .sort((a, b) => b.likes - a.likes) // sort blogs by likes in descending order
+          .map(blog =>
           <Blog
             key={blog.id}
             blog={blog}
