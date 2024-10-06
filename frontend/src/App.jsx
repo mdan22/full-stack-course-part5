@@ -49,13 +49,18 @@ const App = () => {
     return (
       <div>
         {blogs
-          .sort((a, b) => b.likes - a.likes) // sort blogs by likes in descending order
+          .sort((a, b) => b.likes - a.likes) // 5.10: sort blogs by likes in descending order
           .map(blog =>
           <Blog
             key={blog.id}
             blog={blog}
             // use handleLike handler and pass blog object to it
             onLike={() => handleLike(blog)}
+
+            // is this a good approach?
+            // but somehow it doesn't work
+            onRemove={() => handleRemove(blog)}
+            user={user}
           />
         )}
       </div>
@@ -72,6 +77,14 @@ const App = () => {
       const user = await loginService.login({
         username, password,
       })
+
+      // Include the user's ID when storing the user data
+      const userForStorage = {
+        username: user.username,
+        name: user.name,
+        token: user.token,
+        id: user.id  // Make sure the backend sends the user ID
+      }
 
       // add user data to local storage of browser
       window.localStorage.setItem(
@@ -132,6 +145,7 @@ const App = () => {
     // we could also add try catch block here
   }
 
+  // 5.6
   // used the ref here to toggle BlogForm once a blog is added
   const blogFormRef = useRef()
   const blogForm = () => (
@@ -141,11 +155,12 @@ const App = () => {
     </Togglable>
   )
 
+    // 5.8 + 5.9
     // handler for like button
     // is put here bc it needs to access blogs,
     // blogService and error message
     const handleLike = async (blogToLike) => {
-      console.log('\'like\' button clicked')
+      console.log('like button clicked')
 
       // a user needs to be logged in to like a post
       if (!user) {
@@ -187,6 +202,39 @@ const App = () => {
         setErrorMessage(null)
         setSuccess(false)
       }, 5000)
+    }
+
+    // 5.11
+    const handleRemove = async (blogToRemove) => {
+
+      if (window.confirm(`Remove blog ${blogToRemove.title} by ${blogToRemove.author}?`)) {
+        console.log('remove button clicked')
+
+        // remove blogToRemove using blogService.remove
+        // and render a fitting success / error message
+        try {
+          // only send the necessary information for removing blog
+          await blogService.remove(blogToRemove.id)
+          
+          // set frontend blogs list to a filtered list
+          // that no longer contains the removed blog
+          setBlogs(blogs.filter(b => b.id !== blogToRemove.id))
+          
+          setErrorMessage(`You deleted the blog '${blogToRemove.title} by ${blogToRemove.author}'`)
+          setSuccess(true)
+        }
+        
+        catch (error) {
+          console.error('Error updating blog:', error)
+          setErrorMessage('An error occurred while deleting the blog')
+          setSuccess(false)
+        }
+      
+        setTimeout(() => {
+          setErrorMessage(null)
+          setSuccess(false)
+        }, 5000)
+      }
     }
 
   return (

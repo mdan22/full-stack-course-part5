@@ -1,5 +1,6 @@
 import { useState } from 'react'
 
+// 5.6
 // moved BlogForm into its own component
 // and the states related to it
 const BlogForm = ({createBlog}) => {

@@ -1,10 +1,11 @@
 import { useState } from 'react'
 
 // pass blog to be liked and onlike handler are passed as props
-const Blog = ({ blog, onLike }) => {
+const Blog = ({ blog, onLike, onRemove, user}) => {
   // I put the styles for both blogs and buttons
   // into the index.css which is imported by main.jsx
 
+  // 5.7
   // add state for toggling visibility of a blog
   // which works the same way as the one in Togglable
   const [visible, setVisible] = useState(false)
@@ -19,10 +20,16 @@ const Blog = ({ blog, onLike }) => {
     setVisible(!visible)
   }
 
+  // save visibility state of remove button in a boolean variable
+  // button is visible if the blog was added by the logged in user
+
+  // we compare USERNAMES since they are UNIQUE
+  const showRemoveButton = user && blog &&  user.username === blog.user.username
+  const removeButtonStyle = { display: showRemoveButton ? '' : 'none'}
+
   return (
     <div className='blog'>
-      <p>
-        {blog.title} {blog.author}&nbsp;
+        {blog.title} {blog.author}
 
         <span style={hideWhenVisible}>
           <button className='button' onClick={() => toggleVisibility()}>view</button>
@@ -41,8 +48,11 @@ const Blog = ({ blog, onLike }) => {
           <div>
             {blog.author}
           </div>
+
+          <div style={removeButtonStyle}>
+            <button className='button' onClick={onRemove}>remove</button>
+          </div>
         </span>
-      </p>
     </div>
   )
 }
