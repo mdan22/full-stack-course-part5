@@ -16,6 +16,7 @@ const userSchema = mongoose.Schema({
     }
   ],
   // add list of liked blogges of a user as well
+  // for like button functionality
   likedBlogs: [
     {
       type: mongoose.Schema.Types.ObjectId,
@@ -26,8 +27,10 @@ const userSchema = mongoose.Schema({
 
 userSchema.set('toJSON', {
   transform: (document, returnedObject) => {
-    returnedObject.id = returnedObject._id.toString()
-    delete returnedObject._id
+    if (returnedObject._id) {
+      returnedObject.id = returnedObject._id.toString()
+      delete returnedObject._id
+    }
     delete returnedObject.__v
     // the passwordHash should not be revealed
     delete returnedObject.passwordHash

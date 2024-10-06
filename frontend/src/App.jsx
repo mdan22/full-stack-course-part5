@@ -140,31 +140,44 @@ const App = () => {
   )
 
     // handler for like button
-    // is put here bc it needs to access blogs, blogService
-    // and maybe error message in future
+    // is put here bc it needs to access blogs,
+    // blogService and error message
     const handleLike = async (blogToLike) => {
       console.log('\'like\' button clicked')
 
+      // a user needs to be logged in to like a post
       if (!user) {
         console.error('User is not logged in')
         return
       }
     
+      // update likes property of blogToLike using blogService.update
+      // and render a fitting success / error message
       try {
-        // Send only the like operation flag
-        const returnedBlog = await blogService.update(blogToLike.id, { like: true })
+        // only send the necessary information for updating likes
+        // the backend can handle it no matter how many
+        // fields to be updated are sent
+        const returnedBlog = await blogService.update(blogToLike.id, {
+          likes: blogToLike.likes + 1,
+        })
         
         setBlogs(blogs.map(b => b.id !== returnedBlog.id ? b : returnedBlog))
         
         setErrorMessage(`You liked the blog '${returnedBlog.title}'`)
         setSuccess(true)
-      } catch (error) {
+      }
+      
+      catch (error) {
         console.error('Error updating blog:', error)
+
         if (error.response && error.response.data.error === 'User has already liked this blog') {
           setErrorMessage('You have already liked this blog')
-        } else {
+        }
+
+        else {
           setErrorMessage('An error occurred while liking the blog')
         }
+
         setSuccess(false)
       }
     
@@ -200,5 +213,12 @@ const App = () => {
 
 export default App
 
-// The 5.9 problem didn't occur so I'll move to
-// exercise 5.10 without additional changes.
+// Note about exercise 5.8:
+// The course recommends sending all fields in the PUT request,
+// but I optimized this to only send necessary information.
+// This approach is more efficient and reduces the risk of
+// unintended data overwrites.
+
+// Note about exercise 5.9:
+// The problem didn't occur so I'll move to
+// exercise 5.10 without any additional changes.

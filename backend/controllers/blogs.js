@@ -4,7 +4,10 @@ const userExtractor = require('../utils/middleware').userExtractor
 
 router.get('/', async (request, response) => {
   const blogs = await Blog
-    .find({}).populate('user', { username: 1, name: 1 })
+    .find({})
+    .populate('user', { username: 1, name: 1 })
+    .populate('likedBy', { username: 1, name: 1 }) // added populate for likedBy field
+
 
   response.json(blogs)
 })
@@ -54,36 +57,52 @@ router.delete('/:id', userExtractor, async (request, response) => {
   response.status(204).end()
 })
 
+// updated this for the like button functionality to work
+// also added a check to ensure a blog can only be liked once by a user
 router.put('/:id', userExtractor, async (request, response) => {
-  const { id: blogId } = request.params
+  const { id } = request.params // blog id
   const user = request.user
+  const updatedFields = request.body
 
-  const blog = await Blog.findById(blogId)
+  // use Blog.findById and Blog.save instead of
+  // Blog.findByIdAndUpdate bc it's more flexible
+  const blog = await Blog.findById(id)
+
   if (!blog) {
     return response.status(404).json({ error: 'Blog not found' })
   }
 
-  // Check if this is a like request
-  if (request.body.like) {
+  // if this is a like request we need to...
+  // add user to the likedBy list of the blog
+  // and add blog to likedBlogs list of user
+  if (request.body.likes === blog.likes + 1) {
     if (blog.likedBy.includes(user.id)) {
       return response.status(400).json({ error: 'User has already liked this blog' })
     }
 
-    blog.likes += 1
+    // we could increment blog.likes here but we don't
+    // so a put request can change more attributes besides likes
+
     blog.likedBy.push(user.id)
-    user.likedBlogs = user.likedBlogs.concat(blogId)
+    user.likedBlogs.push(blog._id)
 
     await user.save()
-  } else {
-    // Handle other update operations
-    const { title, author, url, likes } = request.body
-    blog.title = title || blog.title
-    blog.author = author || blog.author
-    blog.url = url || blog.url
-    blog.likes = likes || blog.likes
   }
 
+  // only update the fields that are in the request body
+  // user and likedBy arrays can't be modified directly,
+  // only indirectly by creating or liking a blog
+  // so they are skipped in the for each loop
+  Object.keys(updatedFields).forEach(key => {
+    if (key !== 'user' && key !== 'likedBy') {
+      blog[key] = updatedFields[key]
+    }
+  })
+
+  // save updated blog to backend
   const updatedBlog = await blog.save()
+
+  // updatedBlog object in response
   response.json(updatedBlog)
 })
 

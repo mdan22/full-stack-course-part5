@@ -10,6 +10,7 @@ const schema = mongoose.Schema({
     ref: 'User'
   },
   // add list of users that liked the blog
+  // for like button functionality
   likedBy: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
@@ -19,10 +20,14 @@ const schema = mongoose.Schema({
 
 schema.set('toJSON', {
   transform: (document, returnedObject) => {
-    returnedObject.id = returnedObject._id.toString()
-    delete returnedObject._id
+    if (returnedObject._id) {
+      returnedObject.id = returnedObject._id.toString()
+      delete returnedObject._id
+    }
     delete returnedObject.__v
   }
 })
 
-module.exports = mongoose.model('Blog', schema)
+const Blog = mongoose.model('Blog', schema)
+
+module.exports = Blog
