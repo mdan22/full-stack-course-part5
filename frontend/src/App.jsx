@@ -9,9 +9,9 @@ import LoginForm from './components/LoginForm'
 
 const App = () => {
   const [blogs, setBlogs] = useState([])
-  
+
   // add state for username and password
-  const [username, setUsername] = useState('') 
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [user, setUser] = useState(null)
 
@@ -23,11 +23,11 @@ const App = () => {
   useEffect(() => {
     blogService.getAll().then(blogs =>
       setBlogs( blogs )
-    )  
+    )
   }, [])
 
   // add effect hook for checking local storage of browser for user data
-  // and set user to logged in state if data was found 
+  // and set user to logged in state if data was found
   useEffect(() => {
     const loggedUserJSON = window.localStorage.getItem('loggedBlogAppUser')
     if (loggedUserJSON) {
@@ -41,8 +41,8 @@ const App = () => {
   // simple - it's just a logout button
   const logoutForm = () => {
     return (
-    <button className='button' onClick={handleLogout}>logout</button>
-  )}
+      <button className='button' onClick={handleLogout}>logout</button>
+    )}
 
   // outsource blog list
   const blogList = () => {
@@ -51,18 +51,18 @@ const App = () => {
         {blogs
           .sort((a, b) => b.likes - a.likes) // 5.10: sort blogs by likes in descending order
           .map(blog =>
-          <Blog
-            key={blog.id}
-            blog={blog}
-            // use handleLike handler and pass blog object to it
-            onLike={() => handleLike(blog)}
+            <Blog
+              key={blog.id}
+              blog={blog}
+              // use handleLike handler and pass blog object to it
+              onLike={() => handleLike(blog)}
 
-            // is this a good approach?
-            // but somehow it doesn't work
-            onRemove={() => handleRemove(blog)}
-            user={user}
-          />
-        )}
+              // is this a good approach?
+              // but somehow it doesn't work
+              onRemove={() => handleRemove(blog)}
+              user={user}
+            />
+          )}
       </div>
     )
   }
@@ -72,7 +72,7 @@ const App = () => {
   // so it works with extracted loginForm
   // we leave handleLogin in App.jsx since handleLogin
   // needs to access the errormessage and user state
-  const handleLogin = async (username, password) => {    
+  const handleLogin = async (username, password) => {
     try {
       const user = await loginService.login({
         username, password,
@@ -99,7 +99,7 @@ const App = () => {
     }
     catch (exception) {
     // display notification if exception occured
-    setErrorMessage('wrong username or password')
+      setErrorMessage('wrong username or password')
       setSuccess(false)
       setTimeout(() => {
         setErrorMessage(null)
@@ -114,7 +114,7 @@ const App = () => {
     event.preventDefault()
 
     console.log('logout button clicked')
-    
+
     window.localStorage.removeItem('loggedBlogAppUser')
 
     blogService.setToken(null)
@@ -155,87 +155,87 @@ const App = () => {
     </Togglable>
   )
 
-    // 5.8 + 5.9
-    // handler for like button
-    // is put here bc it needs to access blogs,
-    // blogService and error message
-    const handleLike = async (blogToLike) => {
-      console.log('like button clicked')
+  // 5.8 + 5.9
+  // handler for like button
+  // is put here bc it needs to access blogs,
+  // blogService and error message
+  const handleLike = async (blogToLike) => {
+    console.log('like button clicked')
 
-      // a user needs to be logged in to like a post
-      if (!user) {
-        console.error('User is not logged in')
-        return
+    // a user needs to be logged in to like a post
+    if (!user) {
+      console.error('User is not logged in')
+      return
+    }
+
+    // update likes property of blogToLike using blogService.update
+    // and render a fitting success / error message
+    try {
+      // only send the necessary information for updating likes
+      // the backend can handle it no matter how many
+      // fields to be updated are sent
+      const returnedBlog = await blogService.update(blogToLike.id, {
+        likes: blogToLike.likes + 1,
+      })
+
+      setBlogs(blogs.map(b => b.id !== returnedBlog.id ? b : returnedBlog))
+
+      setErrorMessage(`You liked the blog '${returnedBlog.title}'`)
+      setSuccess(true)
+    }
+
+    catch (error) {
+      console.error('Error updating blog:', error)
+
+      if (error.response && error.response.data.error === 'User has already liked this blog') {
+        setErrorMessage('You have already liked this blog')
       }
-    
-      // update likes property of blogToLike using blogService.update
+
+      else {
+        setErrorMessage('An error occurred while liking the blog')
+      }
+
+      setSuccess(false)
+    }
+
+    setTimeout(() => {
+      setErrorMessage(null)
+      setSuccess(false)
+    }, 5000)
+  }
+
+  // 5.11
+  const handleRemove = async (blogToRemove) => {
+
+    if (window.confirm(`Remove blog ${blogToRemove.title} by ${blogToRemove.author}?`)) {
+      console.log('remove button clicked')
+
+      // remove blogToRemove using blogService.remove
       // and render a fitting success / error message
       try {
-        // only send the necessary information for updating likes
-        // the backend can handle it no matter how many
-        // fields to be updated are sent
-        const returnedBlog = await blogService.update(blogToLike.id, {
-          likes: blogToLike.likes + 1,
-        })
-        
-        setBlogs(blogs.map(b => b.id !== returnedBlog.id ? b : returnedBlog))
-        
-        setErrorMessage(`You liked the blog '${returnedBlog.title}'`)
+        // only send the necessary information for removing blog
+        await blogService.remove(blogToRemove.id)
+
+        // set frontend blogs list to a filtered list
+        // that no longer contains the removed blog
+        setBlogs(blogs.filter(b => b.id !== blogToRemove.id))
+
+        setErrorMessage(`You deleted the blog '${blogToRemove.title} by ${blogToRemove.author}'`)
         setSuccess(true)
       }
-      
+
       catch (error) {
         console.error('Error updating blog:', error)
-
-        if (error.response && error.response.data.error === 'User has already liked this blog') {
-          setErrorMessage('You have already liked this blog')
-        }
-
-        else {
-          setErrorMessage('An error occurred while liking the blog')
-        }
-
+        setErrorMessage('An error occurred while deleting the blog')
         setSuccess(false)
       }
-    
+
       setTimeout(() => {
         setErrorMessage(null)
         setSuccess(false)
       }, 5000)
     }
-
-    // 5.11
-    const handleRemove = async (blogToRemove) => {
-
-      if (window.confirm(`Remove blog ${blogToRemove.title} by ${blogToRemove.author}?`)) {
-        console.log('remove button clicked')
-
-        // remove blogToRemove using blogService.remove
-        // and render a fitting success / error message
-        try {
-          // only send the necessary information for removing blog
-          await blogService.remove(blogToRemove.id)
-          
-          // set frontend blogs list to a filtered list
-          // that no longer contains the removed blog
-          setBlogs(blogs.filter(b => b.id !== blogToRemove.id))
-          
-          setErrorMessage(`You deleted the blog '${blogToRemove.title} by ${blogToRemove.author}'`)
-          setSuccess(true)
-        }
-        
-        catch (error) {
-          console.error('Error updating blog:', error)
-          setErrorMessage('An error occurred while deleting the blog')
-          setSuccess(false)
-        }
-      
-        setTimeout(() => {
-          setErrorMessage(null)
-          setSuccess(false)
-        }, 5000)
-      }
-    }
+  }
 
   return (
     <div>
@@ -246,15 +246,15 @@ const App = () => {
       {/* render login or (logout form + blog form + blog list) conditionally */}
       {user === null
         ? <div>
-            <Togglable buttonLabel={'login'}>
-              <LoginForm handleLogin={handleLogin}/>
-            </Togglable>
-          </div>
+          <Togglable buttonLabel={'login'}>
+            <LoginForm handleLogin={handleLogin}/>
+          </Togglable>
+        </div>
         : <div>
-            <p>{user.name} logged-in {logoutForm()}</p>
-            
-            {blogForm()}
-          </div>
+          <p>{user.name} logged-in {logoutForm()}</p>
+
+          {blogForm()}
+        </div>
       }
       {blogList()}
     </div>

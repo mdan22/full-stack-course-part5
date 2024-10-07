@@ -1,7 +1,8 @@
 import { useState } from 'react'
+import PropTypes from 'prop-types'
 
 // pass blog to be liked and onlike handler are passed as props
-const Blog = ({ blog, onLike, onRemove, user}) => {
+const Blog = ({ blog, onLike, onRemove, user }) => {
   // I put the styles for both blogs and buttons
   // into the index.css which is imported by main.jsx
 
@@ -25,36 +26,56 @@ const Blog = ({ blog, onLike, onRemove, user}) => {
 
   // we compare USERNAMES since they are UNIQUE
   const showRemoveButton = user && blog &&  user.username === blog.user.username
-  const removeButtonStyle = { display: showRemoveButton ? '' : 'none'}
+  const removeButtonStyle = { display: showRemoveButton ? '' : 'none' }
 
   return (
     <div className='blog'>
-        {blog.title} {blog.author}
+      {blog.title} {blog.author}
 
-        <span style={hideWhenVisible}>
-          <button className='button' onClick={() => toggleVisibility()}>view</button>
-        </span>
+      <span style={hideWhenVisible}>
+        <button className='button' onClick={() => toggleVisibility()}>view</button>
+      </span>
 
-        <span style={showWhenVisible}>
-          <button className='button' onClick={() => toggleVisibility()}>hide</button>
-          <div>
-            {blog.url}
-          </div>
+      <span style={showWhenVisible}>
+        <button className='button' onClick={() => toggleVisibility()}>hide</button>
+        <div>
+          {blog.url}
+        </div>
 
-          <div>
+        <div>
             likes {blog.likes} <button className='button' onClick={onLike}>like</button>
-          </div>
+        </div>
 
-          <div>
-            {blog.author}
-          </div>
+        <div>
+          {blog.author}
+        </div>
 
-          <div style={removeButtonStyle}>
-            <button className='button' onClick={onRemove}>remove</button>
-          </div>
-        </span>
+        <div style={removeButtonStyle}>
+          <button className='button' onClick={onRemove}>remove</button>
+        </div>
+      </span>
     </div>
   )
+}
+
+// define PropTypes of Blog component
+Blog.propTypes = {
+  // use shape to define the structure of the blog object
+  blog: PropTypes.shape({
+    title: PropTypes.string.isRequired,
+    author: PropTypes.string.isRequired,
+    url: PropTypes.string.isRequired,
+    likes: PropTypes.number.isRequired,
+    user: PropTypes.shape({
+      username: PropTypes.string.isRequired
+    }).isRequired
+  }).isRequired,
+  onLike: PropTypes.func.isRequired,
+  onRemove: PropTypes.func.isRequired,
+  // use shape to define the structure of the user object
+  user: PropTypes.shape({
+    username: PropTypes.string.isRequired
+  })
 }
 
 export default Blog

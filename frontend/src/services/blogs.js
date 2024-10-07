@@ -43,6 +43,6 @@ const blogs = {
   create,
   update,
   remove
- }
+}
 
 export default blogs

@@ -8,6 +8,7 @@
     "dev": "NODE_ENV=development nodemon index.js",
     "test": "NODE_ENV=test node --test --test-concurrency=1",
     "build:ui": "rm -rf dist && cd ../frontend && npm run build && cp -r dist ../backend",
+    "deploy": "npm run build:ui && npm run dev",
     "deploy:full": "npm run build:ui && git add -A && git commit -m uibuild && git push origin main",
     "lint": "eslint ."
   },

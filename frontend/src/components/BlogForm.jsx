@@ -1,9 +1,10 @@
 import { useState } from 'react'
+import PropTypes from 'prop-types'
 
 // 5.6
 // moved BlogForm into its own component
 // and the states related to it
-const BlogForm = ({createBlog}) => {
+const BlogForm = ({ createBlog }) => {
 
   // add state for title, author and url
   const [newTitle, setNewTitle] = useState('') // newTitle state reflects current value of title input
@@ -14,7 +15,7 @@ const BlogForm = ({createBlog}) => {
     event.preventDefault()
 
     console.log('create button clicked', event.target)
-    
+
     createBlog({
       title: newTitle,
       author: newAuthor,
@@ -29,7 +30,7 @@ const BlogForm = ({createBlog}) => {
     setNewUrl('')
   }
 
-    
+
   // move h2 to correct position so it gets toggled as well with the form
   return (
     <div>
@@ -39,27 +40,32 @@ const BlogForm = ({createBlog}) => {
           title:
           <input
             value={newTitle}
-            onChange={({target}) => setNewTitle(target.value)}
+            onChange={({ target }) => setNewTitle(target.value)}
           />
         </div>
         <div>
           author:
           <input
             value={newAuthor}
-            onChange={({target}) => setNewAuthor(target.value)}
+            onChange={({ target }) => setNewAuthor(target.value)}
           />
         </div>
         <div>
           url:
           <input
             value={newUrl}
-            onChange={({target}) => setNewUrl(target.value)}
+            onChange={({ target }) => setNewUrl(target.value)}
           />
         </div>
         <button type="submit">create</button>
       </form>
-    </div>  
+    </div>
   )
+}
+
+// define PropTypes of BlogForm component
+BlogForm.propTypes = {
+  createBlog: PropTypes.func.isRequired,
 }
 
 export default BlogForm
