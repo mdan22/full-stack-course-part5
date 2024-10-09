@@ -1,6 +1,6 @@
 # full-stack-course-part5
 
-This includes both frontend and backend of the blogs app for part 5 submissions of the course
+This includes both frontend and backend of the blogs app for Part 5 submissions of the course
 
 ## A true full stack developer's oath
 
