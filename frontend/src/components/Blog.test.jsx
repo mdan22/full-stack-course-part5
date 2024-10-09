@@ -54,8 +54,22 @@ describe('<Blog />', () => {
     expect(screen.getByText(`${testBlog.title} ${testBlog.author}`)).toBeVisible()
 
     // Check that URL and likes are not visible
-    // use queryBy* queries if elements are expected to not be present or visible.
+    // use queryBy* queries if elements are expected to not be present or visible
     expect(screen.queryByText(testBlog.url)).not.toBeVisible()
     expect(screen.queryByText(`likes ${testBlog.likes}`)).not.toBeVisible()
+  })
+
+  // 5.14
+  // test if children title and author are being
+  // rendered at start whilst URL and likes are not
+  test('renders URL and likes after the view button has been clicked', async () => {
+
+    const button = screen.getByText('view')
+    await user.click(button)
+
+    // check that URL and likes are visible
+    // use queryBy* queries if elements are expected to not be present or visible.
+    expect(screen.getByText(testBlog.url)).toBeVisible()
+    expect(screen.getByText(`likes ${testBlog.likes}`)).toBeVisible()
   })
 })
