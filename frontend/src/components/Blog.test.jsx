@@ -5,8 +5,6 @@ import blogs from '../services/blogs'
 import { expect, test } from 'vitest'
 
 describe('<Blog />', () => {
-  let container
-
   const testBlog = {
     title: "test-blog",
     author: "test-author",
