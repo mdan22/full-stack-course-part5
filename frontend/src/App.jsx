@@ -99,7 +99,7 @@ const App = () => {
     }
     catch (exception) {
     // display notification if exception occured
-      setErrorMessage('wrong username or password')
+      setErrorMessage('wrong credentials')
       setSuccess(false)
       setTimeout(() => {
         setErrorMessage(null)
@@ -246,12 +246,12 @@ const App = () => {
       {/* render login or (logout form + blog form + blog list) conditionally */}
       {user === null
         ? <div>
-          <Togglable buttonLabel={'login'}>
+          <Togglable buttonLabel={'log in'}>
             <LoginForm handleLogin={handleLogin}/>
           </Togglable>
         </div>
         : <div>
-          <p>{user.name} logged-in {logoutForm()}</p>
+          <p>{user.name} logged in {logoutForm()}</p>
 
           {blogForm()}
         </div>
