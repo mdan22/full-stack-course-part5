@@ -33,3 +33,10 @@ dist
 
 # local files
 *.local
+
+# playwright-specific
+
+tests/test-results/
+tests/playwright-report/
+tests/blob-report/
+tests/playwright/.cache/
