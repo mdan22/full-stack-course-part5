@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "playwright test",
-    "test:report": "playwright show-report"
+    "test": "playwright test --project=chromium",
+    "test:report": "playwright show-report",
+    "codegen": "playwright codegen http://localhost:5173/"
   },
   "keywords": [],
   "author": "",
