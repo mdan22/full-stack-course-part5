@@ -8,7 +8,7 @@ pnpm-debug.log*
 lerna-debug.log*
 
 # editor directories and files
-.vscode/*
+.vscode
 !.vscode/extensions.json
 .idea
 .DS_Store
@@ -34,9 +34,11 @@ dist
 # local files
 *.local
 
-# playwright-specific
+# test coverage
+coverage
 
-tests/test-results/
-tests/playwright-report/
-tests/blob-report/
-tests/playwright/.cache/
+# playwright-specific
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
