@@ -1,11 +1,11 @@
 // contains all playwright code for e2e testing of our Blog app 
 const { test, expect, describe, beforeEach, afterEach } = require('@playwright/test');
-const { loginWith, createBlog } = require('./helper');
+const { loginWith, createBlog, logOut, likeBlog } = require('./helper');
 const { title } = require('process');
 
 describe('Blog app', () => {
 
-  // for 5.19 - 5.22
+  // for 5.19 - 5.22:
   // define title, author, and url
   // to be used when creating a blog
   const title = 'React patterns';
@@ -16,10 +16,21 @@ describe('Blog app', () => {
     // empty db and post user before each test
     // by making HTTP requests with request.post to the backend
     await request.post('/api/testing/reset')
+
+    // create a first user 'mdan22'
     await request.post('/api/users', {
       data: {
         name: 'Mdan22',
         username: 'mdan22',
+        password: 'salainen'
+      }}
+    )
+
+    // create a second user 'secondUser'
+    await request.post('/api/users', {
+      data: {
+        name: 'Second User',
+        username: 'secondUser',
         password: 'salainen'
       }}
     )
@@ -146,7 +157,7 @@ describe('Blog app', () => {
         await expect(page.getByText(`${title} ${author}`)).not.toBeVisible();
       })
 
-      // 5.21: Blog List End To End Testing, step 5
+      // 5.22: Blog List End To End Testing, step 6
       test('a blog\'s delete button can only be seen by the user who added it', async ({page}) => {
         // click view button of the 1 existing blog
         await page.getByRole('button', { name: 'view' }).click();
@@ -154,9 +165,9 @@ describe('Blog app', () => {
         // cexpect the remove button to be visible at start
         // since user who created it is still logged in
         await expect(page.getByRole('button', { name: 'remove' })).toBeVisible();
-
-        // click log out button
-        await page.getByRole('button', { name: 'log out'}).click();
+        
+        // log out
+        await logOut(page)
 
         // the blog details are still in view mode after clicking log out
         // so we don't need to click the view button again
@@ -164,6 +175,77 @@ describe('Blog app', () => {
         // expect the remove button to no longer be visible at end
         await expect(page.getByRole('button', { name: 'remove' })).not.toBeVisible();
       })
+    })
+
+  })
+
+  // for 5.23:  
+  /*
+    strategy:
+    
+    add 2 users
+    add a few blogs (3) (it doesn't matter who creates them)
+    like 1st blog 1 time
+    like 2nd blog 2 times
+    don't like 3rd blog
+
+    expected order: Second blog, First blog, Zero blog
+  */
+  describe('when 3 blogs are created with different amount of likes', () => {
+    beforeEach(async ({ page }) => {
+      // log in with first user 'mdan22'
+      await loginWith(page, 'mdan22', 'salainen')
+
+      // Create three blogs
+      await createBlog(page, 'Zero Blog', 'Author 0', 'https://blog0.com');
+      await createBlog(page, 'First Blog', 'Author 1', 'https://blog1.com');
+      await createBlog(page, 'Second Blog', 'Author 2', 'https://blog2.com');
+
+      // like 'First Blog' and 'Second Blog'
+      await likeBlog(page, 'First Blog')
+      await page.waitForTimeout(500)
+
+      await likeBlog(page, 'Second Blog')
+      await page.waitForTimeout(500)
+
+      // 'Zero Blog' gets no likes
+
+      await logOut(page)
+
+      // log in with second user 'secondUser'
+      await loginWith(page, 'secondUser', 'salainen')
+
+      // like the 'Second Blog' again
+      // something goes wrong here
+      // or at least liking doesn't happen fast enough I think
+      await likeBlog(page, 'Second Blog')
+      await page.waitForTimeout(500)
+      /*
+      result:
+
+      First Blog:   1 likes
+      Second Blog:  2 likes
+      Zero Blog:   0 likes
+      */
+    })
+
+    // this solution only works in debug mode
+    // 5.23: Blog List End To End Testing, step 7
+    test.only('blogs are arranged in descending order according to the likes', async ({ page }) => {
+      // Wait for all blog elements to be visible
+      await page.waitForSelector('.blog');
+
+      // Get all blog elements
+      const blogElements = await page.$$('.blog');
+
+      // Expected order of blog titles
+      const expectedOrder = ['Second Blog', 'First Blog', 'Zero Blog'];
+
+      // Check if the blogs are in the correct order
+      for (let i = 0; i < expectedOrder.length; i++) {
+        const blogText = await blogElements[i].innerText();
+        await expect(blogText).toContain(expectedOrder[i]);
+      }
     })
   })
 })

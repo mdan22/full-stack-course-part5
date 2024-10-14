@@ -30,7 +30,31 @@ const createBlog = async (page, title, author, url) => {
   await page.getByText(`${title} ${author}`).waitFor()
 }
 
+const likeBlog = async (page, title) => {
+  
+  // locate blog container by title
+  const container = page.locator('.blog', { hasText: title })
+
+  // click view button within this specific container if not already visible
+  const viewButton = await container.getByRole('button', { name: 'view' })
+  if (await viewButton.isVisible()) await viewButton.click()
+
+  // click like button
+  await container.getByRole('button', { name: 'like' }).click()
+
+  // slow down insert operations by using waitFor
+  // so the like operation succeeds
+  // await page.waitForTimeout(450)
+} 
+
+const logOut = async (page) => {
+  // click log out button
+  await page.getByRole('button', { name: 'log out'}).click();
+}
+
 export {
   loginWith,
-  createBlog
+  createBlog,
+  logOut,
+  likeBlog
 }
