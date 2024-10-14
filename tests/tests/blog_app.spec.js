@@ -129,6 +129,22 @@ describe('Blog app', () => {
         // expect likes value to be 1 at end
         await expect(page.getByText('likes 1')).toBeVisible()
       })
+
+      // 5.21: Blog List End To End Testing, step 5
+      test('a blog can be deleted by the user that created it', async ({page}) => {
+        // click view button of the 1 existing blog
+        await page.getByRole('button', { name: 'view' }).click();
+
+        // Set up dialog handler to accept the confirmation
+        // it automatically accepts the next confirmation dialog that pops up
+        page.once('dialog', dialog => dialog.accept());
+
+        // click remove button in the details of the 1 existing blog
+        await page.getByRole('button', { name: 'remove' }).click();
+
+        // check if the new blog is no longer visible
+        await expect(page.getByText(`${title} ${author}`)).not.toBeVisible();
+      })
     })
   })
 })
