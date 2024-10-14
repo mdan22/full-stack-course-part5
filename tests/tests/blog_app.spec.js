@@ -33,7 +33,7 @@ describe('Blog app', () => {
     // find login button by role 'button'
     const locator = await page.getByRole('button', { name: 'log in' })
 
-    // verify that button is visible and contains text login
+    // verify that button is visible and contains text log in
     await expect(locator).toBeVisible()
     await expect(locator).toHaveText('log in')
   })
@@ -48,7 +48,7 @@ describe('Blog app', () => {
 
     // 5.18: Blog List End To End Testing, step 2
     test('fails with wrong credentials', async ({ page }) => {
-      // user toggles LoginForm using login button
+      // user toggles LoginForm using log in button
       await page.getByRole('button', {name: 'log in'}).click()
   
       // call helperfunction with valid username but wrong password
@@ -144,6 +144,25 @@ describe('Blog app', () => {
 
         // check if the new blog is no longer visible
         await expect(page.getByText(`${title} ${author}`)).not.toBeVisible();
+      })
+
+      // 5.21: Blog List End To End Testing, step 5
+      test('a blog\'s delete button can only be seen by the user who added it', async ({page}) => {
+        // click view button of the 1 existing blog
+        await page.getByRole('button', { name: 'view' }).click();
+
+        // cexpect the remove button to be visible at start
+        // since user who created it is still logged in
+        await expect(page.getByRole('button', { name: 'remove' })).toBeVisible();
+
+        // click log out button
+        await page.getByRole('button', { name: 'log out'}).click();
+
+        // the blog details are still in view mode after clicking log out
+        // so we don't need to click the view button again
+
+        // expect the remove button to no longer be visible at end
+        await expect(page.getByRole('button', { name: 'remove' })).not.toBeVisible();
       })
     })
   })

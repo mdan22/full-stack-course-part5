@@ -41,7 +41,7 @@ const App = () => {
   // simple - it's just a logout button
   const logoutForm = () => {
     return (
-      <button className='button' onClick={handleLogout}>logout</button>
+      <button className='button' onClick={handleLogout}>log out</button>
     )}
 
   // outsource blog list
