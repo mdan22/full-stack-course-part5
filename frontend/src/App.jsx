@@ -19,6 +19,9 @@ const App = () => {
   const [errorMessage, setErrorMessage] = useState(null)
   const [success, setSuccess] = useState(false)
 
+  // add a state for the timeout ID
+  const [timeoutId, setTimeoutId] = useState(null);
+
   // effect hooks should be put at beginning lol
   useEffect(() => {
     blogService.getAll().then(blogs =>
@@ -37,6 +40,35 @@ const App = () => {
     }
   }, [])
 
+  useEffect(() => {
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [timeoutId]);
+
+  // added this to ensure the error message
+  // can be changed sooner than 5 seconds
+  const setErrorWithTimeout = (message, isSuccess) => {
+    // Clear any existing timeout
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+  
+    // Set the new error message and success state
+    setErrorMessage(message);
+    setSuccess(isSuccess);
+  
+    // Set a new timeout and store its ID
+    const newTimeoutId = setTimeout(() => {
+      setErrorMessage(null);
+      setSuccess(false);
+    }, 5000);
+  
+    setTimeoutId(newTimeoutId);
+  };
+
   // outsource logout form
   // simple - it's just a logout button
   const logoutForm = () => {
@@ -52,6 +84,7 @@ const App = () => {
           .sort((a, b) => b.likes - a.likes) // 5.10: sort blogs by likes in descending order
           .map(blog =>
             <Blog
+              data-testid='blog'
               key={blog.id}
               blog={blog}
               // use handleLike handler and pass blog object to it
@@ -96,53 +129,59 @@ const App = () => {
       setUser(user)
 
       // fields are reset in LoginForm component
+
+      // display notification if log in successful
+      setErrorWithTimeout('log in successful', true);
     }
     catch (exception) {
-    // display notification if exception occured
-      setErrorMessage('wrong credentials')
-      setSuccess(false)
-      setTimeout(() => {
-        setErrorMessage(null)
-      }, 5000)
-      console.log(exception)
+      setErrorWithTimeout('wrong credentials', false);
+      console.log(exception);
     }
   }
 
   // handler sets user and token to null and
   // removes local storage data of user in browser
   const handleLogout = async (event) => {
-    event.preventDefault()
+    try {
+      event.preventDefault()
 
-    console.log('logout button clicked')
+      console.log('logout button clicked')
+  
+      window.localStorage.removeItem('loggedBlogAppUser')
+  
+      blogService.setToken(null)
+      setUser(null)
 
-    window.localStorage.removeItem('loggedBlogAppUser')
-
-    blogService.setToken(null)
-    setUser(null)
+      setErrorWithTimeout('log out successful', true)
+    }
+    catch {
+      setErrorWithTimeout('An error occurred while logging out', false)
+    }
   }
 
   // moved away handlers for changes in blogForm fields
 
   // handler for adding blog (is passed to BlogForm component)
   const addBlog = (blogObject) => {
-    // call fct from Toggle component to toggle visibility of BlogForm
-    blogFormRef.current.toggleVisibility()
 
-    // send Object to server via blogService
-    blogService
-      .create(blogObject)
-      .then( returnedBlog => {
-        setBlogs(blogs.concat(returnedBlog))
-      })
+    try {
+      // call fct from Toggle component to toggle visibility of BlogForm
+      blogFormRef.current.toggleVisibility()
 
-    // display notification if addBlog operation was successful
-    setErrorMessage(`a new blog '${blogObject.title}' by '${blogObject.author}' added`)
-    setSuccess(true)
-    setTimeout(() => {
-      setErrorMessage(null)
-      setSuccess(false)
-    }, 5000)
-    // we could also add try catch block here
+      // send Object to server via blogService
+      blogService
+        .create(blogObject)
+        .then( returnedBlog => {
+          setBlogs(blogs.concat(returnedBlog))
+        })
+
+      // display notification if addBlog operation was successful
+      setErrorWithTimeout(`a new blog '${blogObject.title}' by '${blogObject.author}' added`, true)
+    }
+    catch (exception) {
+      setErrorWithTimeout('An error occurred while adding the blog', false)
+      console.log(exception)
+    }
   }
 
   // 5.6
@@ -162,15 +201,15 @@ const App = () => {
   const handleLike = async (blogToLike) => {
     console.log('like button clicked')
 
-    // a user needs to be logged in to like a post
-    if (!user) {
-      console.error('User is not logged in')
-      return
-    }
-
     // update likes property of blogToLike using blogService.update
     // and render a fitting success / error message
     try {
+
+      // a user needs to be logged in to like a post
+      if (!user) {
+        throw new Error('User is not logged in')
+      }
+
       // only send the necessary information for updating likes
       // the backend can handle it no matter how many
       // fields to be updated are sent
@@ -180,28 +219,24 @@ const App = () => {
 
       setBlogs(blogs.map(b => b.id !== returnedBlog.id ? b : returnedBlog))
 
-      setErrorMessage(`You liked the blog '${returnedBlog.title}'`)
-      setSuccess(true)
+      setErrorWithTimeout(`You liked the blog '${returnedBlog.title}'`, true)
     }
-
     catch (error) {
-      console.error('Error updating blog:', error)
+      console.error('Error liking blog:', error)
 
-      if (error.response && error.response.data.error === 'User has already liked this blog') {
-        setErrorMessage('You have already liked this blog')
+      // added the error message for consistency
+      if (error.message && error.message.includes('User is not logged in')) {
+        setErrorWithTimeout('Only logged in users can like a blog', false)
+      }
+
+      else if (error.response && error.response.data.error === 'User has already liked this blog') {
+        setErrorWithTimeout('You have already liked this blog', false)
       }
 
       else {
-        setErrorMessage('An error occurred while liking the blog')
+        setErrorWithTimeout('An error occurred while liking the blog', false)
       }
-
-      setSuccess(false)
     }
-
-    setTimeout(() => {
-      setErrorMessage(null)
-      setSuccess(false)
-    }, 5000)
   }
 
   // 5.11
@@ -220,20 +255,12 @@ const App = () => {
         // that no longer contains the removed blog
         setBlogs(blogs.filter(b => b.id !== blogToRemove.id))
 
-        setErrorMessage(`You deleted the blog '${blogToRemove.title} by ${blogToRemove.author}'`)
-        setSuccess(true)
+        setErrorWithTimeout(`You deleted the blog '${blogToRemove.title} by ${blogToRemove.author}'`, true)
       }
-
       catch (error) {
         console.error('Error updating blog:', error)
-        setErrorMessage('An error occurred while deleting the blog')
-        setSuccess(false)
+        setErrorWithTimeout('An error occurred while deleting the blog', false)
       }
-
-      setTimeout(() => {
-        setErrorMessage(null)
-        setSuccess(false)
-      }, 5000)
     }
   }
 

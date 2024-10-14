@@ -1,5 +1,5 @@
 // contains all playwright code for e2e testing of our Blog app 
-const { test, expect, describe, beforeEach, afterEach } = require('@playwright/test');
+const { test, expect, describe, beforeEach } = require('@playwright/test');
 const { loginWith, createBlog, logOut, likeBlog } = require('./helper');
 const { title } = require('process');
 
@@ -195,31 +195,37 @@ describe('Blog app', () => {
     beforeEach(async ({ page }) => {
       // log in with first user 'mdan22'
       await loginWith(page, 'mdan22', 'salainen')
+      // this somehow works without timeout for the first login
+      // await page.waitForTimeout(250)
 
       // Create three blogs
       await createBlog(page, 'Zero Blog', 'Author 0', 'https://blog0.com');
       await createBlog(page, 'First Blog', 'Author 1', 'https://blog1.com');
       await createBlog(page, 'Second Blog', 'Author 2', 'https://blog2.com');
 
-      // like 'First Blog' and 'Second Blog'
+      // like 'First Blog'
       await likeBlog(page, 'First Blog')
-      await page.waitForTimeout(500)
+      await page.waitForTimeout(250)
 
+      // like 'Second Blog'
       await likeBlog(page, 'Second Blog')
-      await page.waitForTimeout(500)
+      await page.waitForTimeout(250)
 
       // 'Zero Blog' gets no likes
 
       await logOut(page)
+      // used waitFor in the helper function
+      // so no need to wait here
 
       // log in with second user 'secondUser'
       await loginWith(page, 'secondUser', 'salainen')
+      await page.waitForTimeout(250)
 
       // like the 'Second Blog' again
       // something goes wrong here
       // or at least liking doesn't happen fast enough I think
       await likeBlog(page, 'Second Blog')
-      await page.waitForTimeout(500)
+      await page.waitForTimeout(250)
       /*
       result:
 
@@ -229,9 +235,12 @@ describe('Blog app', () => {
       */
     })
 
-    // this solution only works in debug mode
+    // I would have loved to use waitFor more in the
+    // LoginWith and likeBlog Function.
+    // But since it didn't work as expected I used
+    // waitForTimeout in the beforeEach function.
     // 5.23: Blog List End To End Testing, step 7
-    test.only('blogs are arranged in descending order according to the likes', async ({ page }) => {
+    test('blogs are arranged in descending order according to the likes', async ({ page }) => {
       // Wait for all blog elements to be visible
       await page.waitForSelector('.blog');
 

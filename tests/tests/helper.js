@@ -10,6 +10,8 @@ const loginWith = async (page, username, password)  => {
 
   // form is submitted
   await page.getByRole('button', { name: 'log in' }).click()
+
+  // I would have loved to use waitFor here, but it doesn't work
 }
 
 // for 5.19: Blog List End To End Testing, step 3
@@ -25,36 +27,44 @@ const createBlog = async (page, title, author, url) => {
   // submit the form
   await page.getByRole('button', {name: 'create'}).click()
 
-  // slow down insert operations by using waitFor
-  // so the blogs are not inserted simultaneously
+  // use waitFor for efficient testing
   await page.getByText(`${title} ${author}`).waitFor()
 }
 
-const likeBlog = async (page, title) => {
-  
-  // locate blog container by title
-  const container = page.locator('.blog', { hasText: title })
-
+// planned on using it more, but it doesn't work
+const clickView = async (container) => {
   // click view button within this specific container if not already visible
   const viewButton = await container.getByRole('button', { name: 'view' })
-  if (await viewButton.isVisible()) await viewButton.click()
+  if (await viewButton.isVisible()) {
+    await viewButton.click()
+    await container.getByRole('button', { name: 'hide' }).waitFor()
+  }
+}
+
+const likeBlog = async (page, title) => {
+  // locate blog container by title
+  const container = await page.locator('.blog', { hasText: title })
+
+  clickView(container)
 
   // click like button
   await container.getByRole('button', { name: 'like' }).click()
 
-  // slow down insert operations by using waitFor
-  // so the like operation succeeds
-  // await page.waitForTimeout(450)
+  // I would have loved to use waitFor here, but it doesn't work
 } 
 
 const logOut = async (page) => {
   // click log out button
   await page.getByRole('button', { name: 'log out'}).click();
+
+  // use waitFor for efficient testing
+  await page.getByRole('button', { name: 'log in' }).waitFor()
 }
 
 export {
   loginWith,
   createBlog,
   logOut,
-  likeBlog
+  likeBlog,
+  clickView
 }
