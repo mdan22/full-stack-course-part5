@@ -1,3 +1,4 @@
+// for 5.18: Blog List End To End Testing, step 2
 const loginWith = async (page, username, password)  => {
   // user toggles LoginForm using login button
   await page.getByRole('button', { name: 'log in' }).click()
@@ -11,6 +12,25 @@ const loginWith = async (page, username, password)  => {
   await page.getByRole('button', { name: 'log in' }).click()
 }
 
+// for 5.19: Blog List End To End Testing, step 3
+const createBlog = async (page, title, author, url) => {
+  // user clickes new note button which toggles NoteForm
+  await page.getByRole('button', {name: 'new blog'}).click()
+
+  // the newnote field is filled with a note and save button is clicked
+  await page.getByTestId('newTitle').fill(title)
+  await page.getByTestId('newAuthor').fill(author)
+  await page.getByTestId('newUrl').fill(url)
+
+  // submit the form
+  await page.getByRole('button', {name: 'create'}).click()
+
+  // slow down insert operations by using waitFor
+  // so the blogs are not inserted simultaneously
+  await page.getByText(`${title} ${author}`).waitFor()
+}
+
 export {
-  loginWith
+  loginWith,
+  createBlog
 }

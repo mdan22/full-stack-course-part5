@@ -1,22 +1,21 @@
 // contains all playwright code for e2e testing of our Blog app 
-const { test, expect, describe, beforeEach } = require('@playwright/test');
-const { loginWith } = require('./helper')
+const { test, expect, describe, beforeEach, afterEach } = require('@playwright/test');
+const { loginWith, createBlog } = require('./helper');
 
 describe('Blog app', () => {
   beforeEach( async ({ page, request }) => {
     // empty db and post user before each test
     // by making HTTP requests with request.post to the backend
     await request.post('/api/testing/reset')
-    await request.post('/api/users/', {
+    await request.post('/api/users', {
       data: {
         name: 'Mdan22',
         username: 'mdan22',
-        password: 'Zxcvbnm123'
+        password: 'salainen'
       }}
     )
 
-    // all tests in this block are testing the page
-    // at http://localhost:5173 which is defined in config.js
+    // navigate to app
     await page.goto('/')
   })
 
@@ -33,7 +32,7 @@ describe('Blog app', () => {
   describe('Login', () => {
     // 5.18: Blog List End To End Testing, step 2
     test('succeeds with correct credentials', async ({ page }) => {
-      loginWith(page, 'mdan22', 'Zxcvbnm123')
+      await loginWith(page, 'mdan22', 'salainen')
 
       await expect(await page.getByText('Mdan22 logged in')).toBeVisible()
     })
@@ -44,11 +43,9 @@ describe('Blog app', () => {
       await page.getByRole('button', {name: 'log in'}).click()
   
       // call helperfunction with valid username but wrong password
-      loginWith(page, 'mdan22', 'wrong')
+      await loginWith(page, 'mdan22', 'wrong')
   
-      // checking the error message is a bit overkill but I added it anyway
-
-      // failed login expected
+      // check for error message and styles...
 
       // find element by the specififc className
       const errorDiv = await page.locator('.error')
@@ -66,6 +63,32 @@ describe('Blog app', () => {
       // (which would imply a successful login)
       // not to be rendered
       await expect(await page.getByText('Mdan22 logged in')).not.toBeVisible()
+    })
+  })
+
+  describe('When logged in', () => {
+    beforeEach(async ({ page }) => {
+      await loginWith(page, 'mdan22', 'salainen')
+    })
+  
+    // 5.19: Blog List End To End Testing, step 3
+    test('a new blog can be created', async ({ page }) => {
+      // define title, author, and url
+      const title = 'React patterns';
+      const author = 'Michael Chan';
+      const url = 'https://reactpatterns.com/';
+      
+      await createBlog(page, title, author, url)
+
+      // check if the new blog is visible
+      await expect(page.getByText(`${title} ${author}`)).toBeVisible();
+
+      // optional: verify url in hidden details as well
+      // user clicks view button to view the blog
+      await page.getByRole('button', {name: 'view'}).click()
+
+      // verify that url is shown in details
+      await expect(page.getByText(`${url}`)).toBeVisible()
     })
   })
 })
