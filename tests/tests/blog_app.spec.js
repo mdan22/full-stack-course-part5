@@ -1,8 +1,17 @@
 // contains all playwright code for e2e testing of our Blog app 
 const { test, expect, describe, beforeEach, afterEach } = require('@playwright/test');
 const { loginWith, createBlog } = require('./helper');
+const { title } = require('process');
 
 describe('Blog app', () => {
+
+  // for 5.19 - 5.22
+  // define title, author, and url
+  // to be used when creating a blog
+  const title = 'React patterns';
+  const author = 'Michael Chan';
+  const url = 'https://reactpatterns.com/';
+
   beforeEach( async ({ page, request }) => {
     // empty db and post user before each test
     // by making HTTP requests with request.post to the backend
@@ -50,13 +59,13 @@ describe('Blog app', () => {
       // find element by the specififc className
       const errorDiv = await page.locator('.error')
 
-      // and expect it to contain the specific error text 'wrong credentials'
+      // and expect it to contain the specific notification text 'wrong credentials'
       await expect(errorDiv).toContainText('wrong credentials')
 
       // as well as borderstyle: 'solid'
       await expect(errorDiv).toHaveCSS('border-style', 'solid')
 
-      // and color: 'rgb(255, 0, 0)'
+      // and color red, which is 'rgb(255, 0, 0)'
       await expect(errorDiv).toHaveCSS('color', 'rgb(255, 0, 0)')
   
       // expect the phrase 'Mdan22 logged in'
@@ -66,18 +75,13 @@ describe('Blog app', () => {
     })
   })
 
-  describe('When logged in', () => {
+  describe('when logged in', () => {
     beforeEach(async ({ page }) => {
       await loginWith(page, 'mdan22', 'salainen')
     })
   
     // 5.19: Blog List End To End Testing, step 3
     test('a new blog can be created', async ({ page }) => {
-      // define title, author, and url
-      const title = 'React patterns';
-      const author = 'Michael Chan';
-      const url = 'https://reactpatterns.com/';
-      
       await createBlog(page, title, author, url)
 
       // check if the new blog is visible
@@ -89,6 +93,42 @@ describe('Blog app', () => {
 
       // verify that url is shown in details
       await expect(page.getByText(`${url}`)).toBeVisible()
+    })
+
+    describe('and after a blog was created', () => {
+      beforeEach(async ({ page }) => {
+        await createBlog(page, title, author, url)
+      })
+
+      // 5.20: Blog List End To End Testing, step 4
+      test('a blog can be liked', async ({ page }) => {
+
+        // click view button of the 1 existing blog
+        await page.getByRole('button', { name: 'view' }).click();
+
+        // expect likes value to be 0 at start
+        await expect(page.getByText('likes 0')).toBeVisible()
+
+        // click like button of the blog
+        await page.getByRole('button', { name: 'like' }).click();
+  
+        // check for success message and styles...
+  
+        // find element by the specififc className
+        const successDiv = await page.locator('.success')
+  
+        // and expect it to contain the specific notification text `You liked the blog \'${title}\'`
+        await expect(successDiv).toContainText(`You liked the blog \'${title}\'`)
+  
+        // as well as borderstyle: 'solid'
+        await expect(successDiv).toHaveCSS('border-style', 'solid')
+  
+        // and color green, which is 'rgb(0, 128, 0)
+        await expect(successDiv).toHaveCSS('color', 'rgb(0, 128, 0)')
+  
+        // expect likes value to be 1 at end
+        await expect(page.getByText('likes 1')).toBeVisible()
+      })
     })
   })
 })
